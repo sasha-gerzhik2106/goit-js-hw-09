@@ -5,7 +5,7 @@ import FullReload from 'vite-plugin-full-reload';
 import SortCss from 'postcss-sort-media-queries';
 
 export default defineConfig(({ command }) => {
-  return {
+  return { 
     define: {
       [command === 'serve' ? 'global' : '_global']: {},
     },
