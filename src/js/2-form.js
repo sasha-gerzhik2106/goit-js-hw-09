@@ -1,11 +1,21 @@
 const form = document.querySelector('.feedback-form');
 const inputEmail = document.querySelector('.input-email');
-const message = document.querySelector('.message');
+const inputMessage = document.querySelector('.message');
 const done = document.querySelector('.text');
 const emailError = document.querySelector('.error');
 const emptyError = document.querySelector('.empty-error');
 
+// Объект для хранения состояния формы
+let feedbackFormState = {
+  email: '',
+  message: '',
+};
+
+// Восстанавливаем данные из localStorage
+local();
+
 form.addEventListener('submit', oneClickSend);
+form.addEventListener('input', handleInput);
 
 function oneClickSend(event) {
   event.preventDefault();
@@ -13,20 +23,19 @@ function oneClickSend(event) {
   const email = event.target.elements.email.value.trim().toLowerCase();
   const message = event.target.elements.message.value.trim();
 
-    //перевірка 1
-	const array = ['!','£','$','%','^','&','*','(',')','_','-','+','=','#','~','/','?','{','}','[',']','`','¬','|','"',',','<','>',':',';',];
+  // Проверка 1: на недопустимые символы в email
+  const forbiddenChars = ['!', '£', '$', '%', '^', '&', '*', '(', ')', '_', '-', '+', '=', '#', '~', '/', '?', '{', '}', '[', ']', '`', '¬', '|', '"', ',', '<', '>', ':', ';'];
 
-  for (let i = 0; i < array.length; i += 1) {
-    if (email.includes(array[i])) {
-      emailError.textContent = `Invalid character in name: ${array[i]}`;
-      return emailError.textContent;
+  for (let i = 0; i < forbiddenChars.length; i += 1) {
+    if (email.includes(forbiddenChars[i])) {
+      emailError.textContent = `Invalid character in email: ${forbiddenChars[i]}`;
+      return;
     }
   }
 
   emailError.textContent = '';
 
-  //перевірка 2
-
+  // Проверка 2: на заполненность полей
   if (!email || !message) {
     done.textContent = '';
     emptyError.textContent = 'Please fill in all fields';
@@ -35,49 +44,51 @@ function oneClickSend(event) {
 
   emptyError.textContent = '';
 
-  //result
-   const formData = {
+  // Результат
+  const formData = {
     userEmail: email,
     userMessage: message,
   };
 
   done.textContent = 'Success!';
   console.log(formData);
+
+  // Очищаем объект состояния формы и сбрасываем форму
+  feedbackFormState = { email: '', message: '' };
   form.reset();
   localStorage.removeItem('feedback-form-state');
 }
 
-local ()
+function handleInput(event) {
+  const { name, value } = event.target;
+
+  // Обновляем объект состояния формы при вводе данных
+  feedbackFormState[name] = value;
+
+  // Сохраняем данные в localStorage
+  saveData();
+}
+
+function saveData() {
+  localStorage.setItem('feedback-form-state', JSON.stringify(feedbackFormState));
+}
 
 function local() {
-		const storageData = JSON.parse(localStorage.getItem('feedback-form-state')) || {
-			email: '',
-			message: '',
-		  };
+  const storageData = JSON.parse(localStorage.getItem('feedback-form-state')) || {
+    email: '',
+    message: '',
+  };
 
-		if (storageData === null) {
-			return;
-		}
+  // Восстанавливаем данные в форме
+  inputEmail.value = storageData.email;
+  inputMessage.value = storageData.message;
 
-	const feedbackFormState = {
-	  email: storageData.email,
-	  message: storageData.message,
-	};
-  
-	inputEmail.addEventListener('input', event => {
-	  feedbackFormState.email = event.target.value;
-	  saveData();
-	});
-  
-	message.addEventListener('input', event => {
-	  feedbackFormState.message = event.target.value;
-	  saveData();
-	});
-  
-	function saveData() {
-	  localStorage.setItem('feedback-form-state', JSON.stringify(feedbackFormState));
-	}
-  
-	inputEmail.value = feedbackFormState.email;
-	message.value = feedbackFormState.message;
-  }
+  // Обновляем объект состояния формы
+  feedbackFormState = { ...storageData };
+}
+
+// Проверка правильности подключения файла стилей
+const styleLink = document.querySelector('link[rel="stylesheet"]');
+styleLink.addEventListener('error', () => {
+  console.error('Stylesheet could not be loaded.');
+});
